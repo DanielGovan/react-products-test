@@ -2,10 +2,6 @@ import React, { Component } from "react";
 
 import "./App.css";
 
-// Todos: take out products gatherer into its own file
-// Make the programming functional
-// sort the filter and the testing >.<
-
 const formatNumber = (number) =>
   new Intl.NumberFormat("en", { minimumFractionDigits: 2 }).format(number);
 
@@ -35,7 +31,7 @@ class App extends Component {
         const sumProds = allProducts.reduce((accumulator, val) => {
           const o = accumulator
             .filter((obj) => {
-              return obj.name == val.name;
+              return obj.name === val.name;
             })
             .pop() || {
             id: val.id,
@@ -79,45 +75,44 @@ class App extends Component {
     }, 0);
 
     return (
-      <div className="product-list">
-        <div className="filterWrap">
-          <label htmlFor="product-filter">Search Products</label>
-          <input
-            id="product-filter"
-            type="text"
-            onChange={(e) => handleFilterChange(e)}
-          />
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Revenue</th>
-            </tr>
-          </thead>
-          <tbody>
-            {this.state.isFetching && (
-              <tr>
-                <td colSpan="2" style={{ textAlign: "center" }}>
-                  Fetching users...
-                </td>
-              </tr>
-            )}
-            {filteredProducts.map((product) => (
-              <tr key={product.name + product.id}>
-                <td>{product.name}</td>{" "}
-                <td>{formatNumber(product.unitPrice * product.sold)}</td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td>Total</td>
-              <td>{formatNumber(total)}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+      <>
+        {this.state.isFetching ? (
+          "Loading..."
+        ) : (
+          <div className="product-list">
+            <div className="filterWrap">
+              <label htmlFor="product-filter">Search Products</label>
+              <input
+                id="product-filter"
+                type="text"
+                onChange={(e) => handleFilterChange(e)}
+              />
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProducts.map((product) => (
+                  <tr key={product.name}>
+                    <td>{product.name}</td>
+                    <td>{formatNumber(product.unitPrice * product.sold)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td>{formatNumber(total)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </>
     );
   }
 }
