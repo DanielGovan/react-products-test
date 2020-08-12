@@ -2,8 +2,6 @@ import React, { Component } from "react";
 
 import "./App.css";
 
-const branchPath = "http://localhost:3000/api/branch3.json";
-
 const formatNumber = (number) =>
   new Intl.NumberFormat("en", { minimumFractionDigits: 2 }).format(number);
 
@@ -16,39 +14,43 @@ class App extends Component {
   };
 
   componentDidMount() {
-    fetch(branchPath)
-      .then((res) => res.json())
+    Promise.all(
+      [1, 2, 3].map((i) =>
+        fetch(`/api/branch${i}.json`).then((res) => res.json())
+      )
+    )
       .then((result) => {
-        // grab products
-        let prods = result.products;
+        // grab all products
+        let prods = [
+          ...result[0].products,
+          ...result[1].products,
+          ...result[2].products,
+        ];
         //sort products alphabetically
-        prods = prods.sort(function (a, b) {
-          const nameA = a.name.toUpperCase();
-          const nameB = b.name.toUpperCase();
-          if (nameA < nameB) {
-            return -1;
-          }
-          if (nameA > nameB) {
-            return 1;
-          }
-          // console.log("equal name!");
-          return 0;
-        });
+        prods = prods.sort((a, b) => a.name.localeCompare(b.name));
         this.setState({
           isFetching: false,
           loadedProducts: prods,
         });
+      })
+      .catch((err) => {
+        console.log(err);
       });
   }
 
   render() {
     const { loadedProducts } = this.state;
-    let filteredProducts = loadedProducts;
+
+    let filteredProducts = [...loadedProducts];
+
+    let total = filteredProducts.reduce(function (a, b) {
+      return a + b.unitPrice * b.sold;
+    }, 0);
+
     return (
       <div className="product-list">
         <label>Search Products</label>
         <input type="text" />
-
         <table>
           <thead>
             <tr>
@@ -65,7 +67,7 @@ class App extends Component {
               </tr>
             )}
             {filteredProducts.map((product) => (
-              <tr key={product.id}>
+              <tr key={product.name + product.id}>
                 <td>{product.name}</td>{" "}
                 <td>£ {formatNumber(product.unitPrice * product.sold)}</td>
               </tr>
@@ -74,7 +76,7 @@ class App extends Component {
           <tfoot>
             <tr>
               <td>Total</td>
-              <td></td>
+              <td>£ {formatNumber(total)}</td>
             </tr>
           </tfoot>
         </table>
