@@ -14,7 +14,6 @@ class App extends Component {
     isFetching: true,
     loadedProducts: [],
     filterKey: "",
-    filteredproducts: [],
   };
 
   componentDidMount() {
@@ -44,11 +43,11 @@ class App extends Component {
             unitPrice: val.unitPrice,
             sold: 0,
           };
-
           o.sold += val.sold;
           accumulator.push(o);
           return [...new Set(accumulator)];
         }, []);
+
         this.setState({
           isFetching: false,
           loadedProducts: sortProducts(sumProds),
@@ -60,9 +59,20 @@ class App extends Component {
   }
 
   render() {
-    const { loadedProducts } = this.state;
+    const handleFilterChange = ({ target }) => {
+      this.setState({
+        filterKey: target.value,
+      });
+    };
 
-    let filteredProducts = [...loadedProducts];
+    const { loadedProducts, filterKey } = this.state;
+
+    let filteredProducts =
+      filterKey && filterKey.length > 0
+        ? loadedProducts.filter(({ name }) =>
+            name.toUpperCase().includes(filterKey.toUpperCase())
+          )
+        : loadedProducts;
 
     let total = filteredProducts.reduce((a, b) => {
       return a + b.unitPrice * b.sold;
@@ -70,8 +80,14 @@ class App extends Component {
 
     return (
       <div className="product-list">
-        <label>Search Products</label>
-        <input type="text" />
+        <div className="filterWrap">
+          <label htmlFor="product-filter">Search Products</label>
+          <input
+            id="product-filter"
+            type="text"
+            onChange={(e) => handleFilterChange(e)}
+          />
+        </div>
         <table>
           <thead>
             <tr>
@@ -90,14 +106,14 @@ class App extends Component {
             {filteredProducts.map((product) => (
               <tr key={product.name + product.id}>
                 <td>{product.name}</td>{" "}
-                <td>£ {formatNumber(product.unitPrice * product.sold)}</td>
+                <td>{formatNumber(product.unitPrice * product.sold)}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr>
               <td>Total</td>
-              <td>£ {formatNumber(total)}</td>
+              <td>{formatNumber(total)}</td>
             </tr>
           </tfoot>
         </table>
