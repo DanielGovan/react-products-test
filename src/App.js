@@ -2,6 +2,10 @@ import React, { Component } from "react";
 
 import "./App.css";
 
+// Todos: take out products gatherer into its own file
+// Make the programming functional
+// sort the filter and the testing >.<
+
 const formatNumber = (number) =>
   new Intl.NumberFormat("en", { minimumFractionDigits: 2 }).format(number);
 
@@ -14,6 +18,9 @@ class App extends Component {
   };
 
   componentDidMount() {
+    const sortProducts = (products) =>
+      products.sort((a, b) => a.name.localeCompare(b.name));
+
     Promise.all(
       [1, 2, 3].map((i) =>
         fetch(`/api/branch${i}.json`).then((res) => res.json())
@@ -21,16 +28,30 @@ class App extends Component {
     )
       .then((result) => {
         // grab all products
-        let prods = [
+        const allProducts = [
           ...result[0].products,
           ...result[1].products,
           ...result[2].products,
         ];
-        //sort products alphabetically
-        prods = prods.sort((a, b) => a.name.localeCompare(b.name));
+        const sumProds = allProducts.reduce((accumulator, val) => {
+          const o = accumulator
+            .filter((obj) => {
+              return obj.name == val.name;
+            })
+            .pop() || {
+            id: val.id,
+            name: val.name,
+            unitPrice: val.unitPrice,
+            sold: 0,
+          };
+
+          o.sold += val.sold;
+          accumulator.push(o);
+          return [...new Set(accumulator)];
+        }, []);
         this.setState({
           isFetching: false,
-          loadedProducts: prods,
+          loadedProducts: sortProducts(sumProds),
         });
       })
       .catch((err) => {
@@ -43,7 +64,7 @@ class App extends Component {
 
     let filteredProducts = [...loadedProducts];
 
-    let total = filteredProducts.reduce(function (a, b) {
+    let total = filteredProducts.reduce((a, b) => {
       return a + b.unitPrice * b.sold;
     }, 0);
 
