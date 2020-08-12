@@ -1,8 +1,9 @@
 import React, { Component } from "react";
 
 import "./App.css";
+import ProductItem from "./components/ProductItem";
 
-const formatNumber = (number) =>
+export const formatNumber = (number) =>
   new Intl.NumberFormat("en", { minimumFractionDigits: 2 }).format(number);
 
 class App extends Component {
@@ -96,12 +97,7 @@ class App extends Component {
                 </tr>
               </thead>
               <tbody>
-                {filteredProducts.map((product) => (
-                  <tr key={product.name}>
-                    <td>{product.name}</td>
-                    <td>{formatNumber(product.unitPrice * product.sold)}</td>
-                  </tr>
-                ))}
+                <ProductItem productData={filteredProducts}></ProductItem>
               </tbody>
               <tfoot>
                 <tr>
