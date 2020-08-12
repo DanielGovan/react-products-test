@@ -2,6 +2,7 @@ import React, { Component } from "react";
 
 import "./App.css";
 import ProductItem from "./components/ProductItem";
+import { productAggregator } from "./productAggregator";
 
 export const formatNumber = (number) =>
   new Intl.NumberFormat("en", { minimumFractionDigits: 2 }).format(number);
@@ -17,42 +18,12 @@ class App extends Component {
     const sortProducts = (products) =>
       products.sort((a, b) => a.name.localeCompare(b.name));
 
-    Promise.all(
-      [1, 2, 3].map((i) =>
-        fetch(`/api/branch${i}.json`).then((res) => res.json())
-      )
-    )
-      .then((result) => {
-        // grab all products
-        const allProducts = [
-          ...result[0].products,
-          ...result[1].products,
-          ...result[2].products,
-        ];
-        const sumProds = allProducts.reduce((accumulator, val) => {
-          const o = accumulator
-            .filter((obj) => {
-              return obj.name === val.name;
-            })
-            .pop() || {
-            id: val.id,
-            name: val.name,
-            unitPrice: val.unitPrice,
-            sold: 0,
-          };
-          o.sold += val.sold;
-          accumulator.push(o);
-          return [...new Set(accumulator)];
-        }, []);
-
-        this.setState({
-          isFetching: false,
-          loadedProducts: sortProducts(sumProds),
-        });
+    productAggregator().then((sumProds) =>
+      this.setState({
+        isFetching: false,
+        loadedProducts: sortProducts(sumProds),
       })
-      .catch((err) => {
-        console.log(err);
-      });
+    );
   }
 
   render() {
